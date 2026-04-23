@@ -19,6 +19,15 @@ You are distilling knowledge from the current project into the user's Obsidian w
 
 When writing internal links in Steps 4–5, apply the link format from `llm-wiki/SKILL.md` (Link Format section) using the `OBSIDIAN_LINK_FORMAT` value.
 
+## Language Policy for Writes
+
+When syncing project knowledge into the wiki:
+
+- Write project knowledge pages in **Chinese-first prose** if the maintainer primarily works in Chinese.
+- Keep important technical terms anchored as `Chinese (English / Acronym)` on first mention.
+- Keep `tags` and `aliases` English-canonical when possible.
+- If the page is really a workflow / contract / agent-facing operational page rather than project knowledge, keep it English-first unless the user explicitly asks for Chinese.
+
 ## Step 1: Understand the Project
 
 Figure out what this project is by scanning the current working directory:

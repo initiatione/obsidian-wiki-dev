@@ -129,6 +129,21 @@ See `wiki-query` and `wiki-export` skills for how the filter is applied.
 - **Single source of truth.** Visibility tags shape how content is surfaced — they don't duplicate or separate it.
 - **Keep context warm.** `hot.md` is a ~500-word semantic snapshot of recent activity. Every write skill updates it so the next session can pick up where the last one left off without crawling the full vault.
 
+## Language Policy
+
+Treat the wiki as having two language surfaces:
+
+- **Knowledge pages** (`concepts/`, `entities/`, `projects/`, `journal/`, most `synthesis/`, most `references/`) should default to **Chinese-first prose** when the maintainer primarily works in Chinese.
+- **Workflow / contract pages** (`skills/`, governance/process docs, protocol/contract pages, command-entry docs, agent-facing operational references) should remain **English-first**.
+
+For Chinese-first knowledge pages:
+
+- Keep正文/summary/interpretation mainly in Chinese.
+- Keep the first mention of important technical terms in `Chinese (English / Acronym)` form.
+- Prefer English canonical tags and English aliases for stable retrieval.
+
+Do not rewrite workflow or skill pages into Chinese unless the user explicitly asks.
+
 ## Architecture Reference
 
 For the full pattern (three-layer architecture, page templates, project org), read `.skills/llm-wiki/SKILL.md`.

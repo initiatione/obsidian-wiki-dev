@@ -20,6 +20,15 @@ This skill can be invoked directly or via the `wiki-history-ingest` router (`/wi
 2. Read `.manifest.json` at the vault root to check what has already been ingested
 3. Read `index.md` at the vault root to understand what the wiki already contains
 
+## Language Policy for Writes
+
+When distilling OpenClaw history into wiki pages:
+
+- Write ordinary knowledge pages in **Chinese-first prose** if the maintainer primarily works in Chinese.
+- Keep important technical terms anchored as `Chinese (English / Acronym)` on first mention.
+- Keep `tags` and `aliases` English-canonical when possible.
+- Keep workflow / contract / command-entry pages English-first unless the user explicitly asks otherwise.
+
 ## Ingest Modes
 
 ### Append Mode (default)
