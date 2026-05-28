@@ -1,477 +1,164 @@
-# obsidian-wiki
+# liuchf Wiki Skills
 
+这是我给自己维护的通用 wiki skill 分支，基于上游
+[Ar9av/obsidian-wiki](https://github.com/Ar9av/obsidian-wiki)，面向我实际使用的 Codex 和 Claude。
 
-<p align="center">
-  <a href="https://deepwiki.com/Ar9av/obsidian-wiki"><img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki" /></a>
-  <a href="https://github.com/ar9av/obsidian-wiki/pulls"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" alt="PRs Welcome" /></a>
-  <a href="https://x.com/_ar9av"><img src="https://img.shields.io/badge/@__ar9av-black?logo=x&logoColor=white" alt="X" /></a>
-</p>
+它的目标不是把某一个 Obsidian vault 写死进 skill，而是提供一组通用的 wiki 维护能力：任何项目都可以作为知识来源，任何 vault 都可以通过自己的 `AGENTS.md` 和 `_meta/*` contract 决定最终怎么写入。
 
-<p align="center">
-  <img width="768" height="512" alt="obisidan-wiki" src="https://github.com/user-attachments/assets/b44cf63b-3197-4fb1-8e18-dbc9a39f27a7" />
-</p>
+维护命令、分支同步和本机 junction 安装见 [MAINTENANCE.md](MAINTENANCE.md)。
 
-A knowledge mgmt system inspired by [gist](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f) published by Andrej Karpathy about maintaining a personal knowledge base with LLMs : the "LLM Wiki" pattern.
+## 这个分支解决什么问题
 
-Instead of asking an LLM the same questions over over (or doing RAG every time), you compile knowledge once into interconnected markdown files and keep them current. In this case Obsidian is the viewer and the LLM is the maintainer.
+普通对话会把知识留在一次性上下文里；普通 RAG 往往每次重新检索、重新解释。这个分支采用 LLM Wiki 思路：把值得长期保存的知识蒸馏成 Obsidian markdown 页面，让 agent 负责维护知识图谱，人负责校准规则和事实边界。
 
-We took that and built a framework around it. The whole thing is a set of markdown skill files that any AI coding agent (Claude Code, Cursor, Windsurf, Pi, whatever you use) can read and execute. You point it at your Obsidian vault and tell it what to do.
+这个分支重点支持三件事：
 
-## Quick Start
+- 从项目、文档、网页、会话历史中抽取可复用知识。
+- 把新知识合并进已有 wiki，而不是制造重复笔记。
+- 让不同 vault 用自己的本地 contract 管 schema、目录、标签、语言风格和安全边界。
 
-### Install via pip (recommended)
+## Skill 功能图谱
 
-```bash
-pip install obsidian-wiki
-obsidian-wiki setup --vault /path/to/your/vault
+核心方法层：
+
+- `llm-wiki`：定义 LLM Wiki 的基础模式、frontmatter、关系、置信度、生命周期、检索成本控制等通用原则。
+- `wiki-setup`：初始化或修复一个 Obsidian wiki vault。
+- `wiki-switch`：在多个 vault profile 之间切换。
+
+写入与导入层：
+
+- `wiki-ingest`：把文档、PDF、图片、网页剪藏、`_raw/` 草稿蒸馏成 wiki 页面。
+- `wiki-update`：从任意项目目录同步项目知识到 wiki。
+- `obsidian-wiki-ingest`：项目内自动化 ingest 包装入口。
+- `data-ingest`：导入原始文本、聊天导出、日志和非结构化资料。
+- `ingest-url`：抓取 URL 并写入 wiki。
+- `wiki-import`：导入外部 wiki/markdown 资料。
+- `wiki-stage-commit`：处理 staged writes，把 `_staging/` 中的拟写入内容提升到正式位置。
+
+查询与上下文层：
+
+- `wiki-query`：用 wiki 回答问题，先读 index/frontmatter，再按需升级到 QMD、grep、页面全文。
+- `wiki-context-pack`：为当前任务打包相关 wiki 上下文。
+- `memory-bridge`：按不同 agent 来源浏览、比较 wiki 知识。
+
+会话与研究捕获层：
+
+- `wiki-capture`：把当前对话保存成结构化 wiki note。
+- `wiki-quick-chat-capture`：快速把会话中的 bug、经验、待办捕获到 `_raw/`。
+- `wiki-research`：多轮 web research 后把结论写入 wiki。
+- `wiki-history-ingest`：统一的 agent 历史导入入口。
+- `wiki-agent`：按主题从指定 agent 历史中定向挖掘。
+- `claude-history-ingest`、`codex-history-ingest`：分别导入 Claude 和 Codex 历史。
+
+维护与治理层：
+
+- `wiki-status`：查看 ingest 状态、pending source、token footprint、staged writes。
+- `daily-update`：日常维护循环，刷新 source freshness、index 和 hot cache。
+- `wiki-lint`：检查孤儿页、坏链接、frontmatter、重复和健康问题。
+- `cross-linker`：自动发现并补充缺失 wikilink。
+- `tag-taxonomy`：维护受控标签词表。
+- `wiki-dedup`：发现并合并重复页面。
+- `wiki-digest`：生成可阅读的 wiki 摘要。
+- `wiki-synthesize`：发现跨页面综合机会。
+- `wiki-dashboard`：生成 Obsidian Bases dashboard。
+- `graph-colorize`：按标签、目录或 visibility 给 Obsidian graph 上色。
+- `wiki-export`：导出知识图谱供外部工具使用。
+
+开发与自检层：
+
+- `skill-creator`：创建或改进 skill。
+- `impl-validator`：对 agent/skill 产物做独立校验。
+
+本机安装默认排除其他 agent 专属历史 skill：`hermes-history-ingest`、`openclaw-history-ingest`、`copilot-history-ingest`、`pi-history-ingest`。这些文件保留在仓库里，方便继续跟上游合并，但不进入我的 Codex/Claude 常用 skill 面。
+
+## Wiki 维护思路
+
+这个分支倾向把 wiki 当作长期知识系统，而不是资料堆。
+
+写入时优先问：
+
+- 这条内容三个月后还值得找回吗？
+- 它应该合并到已有概念，还是确实需要新页面？
+- 哪些事实是源材料直接说的，哪些是 agent 推理出来的？
+- 这条知识应该是项目局部知识，还是可提升为全局概念？
+
+页面维护的默认原则：
+
+- 先合并，后新建：已有概念页能承载时，不创建重复节点。
+- 先结构，后文采：frontmatter、summary、sources、tags、wikilinks、relationships 比漂亮段落更重要。
+- provenance 明确：直接来源无需标记，推理用 `^[inferred]`，不确定或冲突用 `^[ambiguous]`。
+- lifecycle 保守：agent 可以写 draft，但 verified、archived、disputed 等状态应尊重 vault contract 或人工判断。
+- 查询分层：先 index/frontmatter，再 QMD/grep，再少量全文阅读，避免把整个 vault 当上下文塞进去。
+
+## 通用 Skill + Vault Contract
+
+本分支最重要的结构是两层规则：
+
+```text
+通用 wiki skill
+  定义能力、流程、frontmatter 约定、检索策略、QMD 接口、默认写作原则
+
+目标 vault contract
+  定义这个 vault 的目录、schema、taxonomy、语言风格、数学规则、source-of-truth 边界
 ```
 
-`obsidian-wiki setup` writes the config to `~/.obsidian-wiki/config` and installs every wiki skill into all your AI agents (Claude Code, Cursor, Codex, Gemini, Hermes, Pi, and more). Skills are symlinked to the installed package, so `pip install -U obsidian-wiki` upgrades them everywhere — just re-run `obsidian-wiki setup` to pick up new skills. Then open a project in your agent and say **"set up my wiki"**.
+实际优先级：
 
-```bash
-obsidian-wiki list              # list the bundled skills
-obsidian-wiki info              # show install paths, version, and config
-obsidian-wiki setup --project . # also drop project-local skills + AGENTS.md into the current repo
-obsidian-wiki setup --copy      # copy skill files instead of symlinking
+1. 用户当前明确指令。
+2. 目标 vault 根目录的 `AGENTS.md`。
+3. 目标 vault 的 `_meta/agent-operating-contract.md`。
+4. 目标 vault 的 `_meta/schema.md`、`_meta/taxonomy.md`、`_meta/directory-structure.md`。
+5. 本仓库 `.skills/` 中的通用 `llm-wiki` / `wiki-*` skill。
+6. 上游默认行为。
+
+这意味着同一套 skill 可以服务多个 vault。每个 vault 只需要提供更高优先级的本地 contract，就能决定：
+
+- 页面放在哪些目录。
+- 哪些 frontmatter 字段必须存在。
+- 标签如何归一化。
+- 普通知识页使用中文还是英文。
+- 数学、LaTeX、Obsidian wikilink 怎么写。
+- 哪些内容只能读不能写，哪些源更可信。
+
+## 源项目规则与目标 Vault 规则
+
+从项目同步到 wiki 时，需要分清两类规则：
+
+- 源项目规则：决定怎么理解当前项目、哪些文件是事实源、哪些生成物不要误改、应该用哪个解释器或测试环境。
+- 目标 vault 规则：决定理解出来的知识如何写进 wiki、放在哪、用什么标签、如何链接和标注 provenance。
+
+例如在一个代码仓库里运行 `wiki-update`：
+
+1. 先读源项目的 `AGENTS.md`、README、测试和配置，理解项目事实。
+2. 再读目标 vault 的 `AGENTS.md` 与 `_meta/*`，决定写入规则。
+3. 最后用通用 `wiki-update` 流程蒸馏、合并、更新 index/log/hot。
+
+源项目不会支配目标 vault 的写作规则；目标 vault 也不会改变源项目的事实边界。这个隔离是为了避免“把项目规则误当成 wiki 规则”，也避免“把 wiki 风格反向污染源项目”。
+
+## QMD 的位置
+
+QMD 是可选搜索索引，不是事实源。
+
+启用后，`wiki-query` 可以先用 QMD 做语义召回，`wiki-ingest` 和 `wiki-update` 可以先查已有相关页面，减少重复写入。未启用时，所有核心 skill 仍应回退到 index、frontmatter、grep 和少量全文读取。
+
+常用变量包括：
+
+```text
+QMD_TRANSPORT=mcp
+QMD_CLI=qmd
+QMD_WIKI_COLLECTION=...
+QMD_PAPERS_COLLECTION=...
+QMD_CLI_SEARCH_MODE=quality
 ```
 
-`OBSIDIAN_VAULT_PATH` is just any directory where you want your wiki documents to live — a new empty folder or an existing Obsidian vault. Omit `--vault` to be prompted (or set it later in `~/.obsidian-wiki/config`).
+Markdown vault 始终是 source of truth；QMD 只负责帮 agent 更快找到该读的页面。
 
-### Install via Skills CLI
+## 上游关系
 
-```bash
-npx skills add Ar9av/obsidian-wiki
-```
+上游 `Ar9av/obsidian-wiki` 负责通用能力演进；本分支负责个人使用面：
 
-This installs all wiki skills into your current agent (Claude Code, Cursor, Codex, etc.). Then open your agent and say **"set up my wiki"**.
+- 保留上游 `.skills/` 全量文件，方便 rebase/merge。
+- 只把 Codex 和 Claude 需要的通用 skill 安装到本机。
+- 把个人规则固化为“通用 skill + vault-local contract”，而不是写死某个 vault 路径。
 
-Browse the full skill list at [skills.sh/ar9av/obsidian-wiki](https://skills.sh/ar9av/obsidian-wiki).
-
-### Install via git clone
-
-```bash
-git clone https://github.com/Ar9av/obsidian-wiki.git
-cd obsidian-wiki
-bash setup.sh
-```
-
-`setup.sh` asks for your vault path, writes the config to `~/.obsidian-wiki/config`, symlinks skills into all your agents, and installs `wiki-update` globally so you can use it from any project.
-
-`OBSIDIAN_VAULT_PATH` is just any directory where you want your wiki documents to live. It can be a new empty folder or an existing Obsidian vault. Obsidian will read from it directly.
-
-Open the project in your agent and say **"set up my wiki"**. That's it.
-
-## Agent Compatibility
-
-Works with **any AI coding agent** that can read files — Claude Code, Cursor, Windsurf, Pi, Codex, Gemini CLI, Kiro, and more. `setup.sh` handles skill discovery for each one automatically.
-
-<details>
-<summary><b>Supported agents and manual setup instructions</b></summary>
-
-| Agent | Bootstrap | Skills Directory | Slash Commands |
-|---|---|---|---|
-| **[Claude Code](https://claude.ai/code)** | `CLAUDE.md` | `.claude/skills/` + `~/.claude/skills/` | ✅ `/wiki-ingest`, `/wiki-status`, etc. |
-| **[Cursor](https://cursor.com)** | `.cursor/rules/obsidian-wiki.mdc` | `.cursor/skills/` | ✅ `/wiki-ingest`, `/wiki-status`, etc. |
-| **[Windsurf](https://windsurf.com)** | `.windsurf/rules/obsidian-wiki.md` | `.windsurf/skills/` | ✅ via Cascade |
-| **[Codex (OpenAI)](https://openai.com/codex)** | `AGENTS.md` | `~/.codex/skills/` | `$wiki-ingest` (Codex uses `$`) |
-| **[Gemini CLI](https://github.com/google-gemini/gemini-cli)** | `GEMINI.md` | `~/.gemini/skills/` | ✅ `/wiki-ingest`, `/wiki-query`, etc. |
-| **[Google Antigravity](https://antigravity.google)** | `.agent/rules/` + `.agent/workflows/` | `.agents/skills/` | ✅ via workflows registry |
-| **[Kiro IDE/CLI](https://kiro.dev)** | `.kiro/steering/obsidian-wiki.md` | `.kiro/skills/` + `~/.kiro/skills/` | ✅ `/wiki-ingest`, `/wiki-status`, etc. |
-| **[Hermes](https://hermes-agent.nousresearch.com)** | `.hermes.md` | `~/.hermes/skills/` | ✅ `/wiki-history-ingest hermes`, etc. |
-| **[OpenClaw](https://openclaw.ai)** | `AGENTS.md` | `~/.openclaw/skills/` + `~/.agents/skills/` | ✅ `/wiki-ingest`, `/wiki-history-ingest openclaw`, etc. |
-| **[OpenCode](https://opencode.ai)** | `AGENTS.md` | `~/.agents/skills/` | ✅ `/wiki-ingest`, `/wiki-query`, etc. |
-| **[Aider](https://aider.chat)** | `AGENTS.md` | `~/.agents/skills/` | Describe intent in chat |
-| **[Factory Droid](https://factory.ai)** | `AGENTS.md` | `~/.agents/skills/` | ✅ `/wiki-ingest`, `/wiki-query`, etc. |
-| **[Trae](https://trae.ai)** / **Trae CN** | `AGENTS.md` | `~/.trae/skills/` / `~/.trae-cn/skills/` | ✅ via Agent tool |
-| **GitHub Copilot (VS Code)** | `.github/copilot-instructions.md` | — | Describe intent in chat |
-| **GitHub Copilot (CLI)** | — | `~/.copilot/skills/` | ✅ `/wiki-ingest`, `/wiki-query`, etc. |
-| **[Kilocode](https://kilo.ai/)** | `AGENTS.md` / `CLAUDE.md` | `.agents/skills/` + `.claude/skills/` | ✅ `/wiki-ingest`, `/wiki-status`, etc. |
-| **[Pi](https://pi.dev)** | `AGENTS.md` | `.pi/skills/` + `~/.pi/agent/skills/` | ✅ `/wiki-ingest`, `/wiki-history-ingest pi`, etc. |
-
-> Each agent has its own convention for discovering skills. `setup.sh` symlinks the canonical `.skills/` directory into each agent's expected location. You write skills once, every agent can use them.
-
-### Manual setup (if you prefer `setup.sh`)
-
-<details>
-<summary>Claude Code</summary>
-
-Skills are auto-discovered from `.claude/skills/`. Either run `setup.sh` or copy `.skills/*` to `.claude/skills/`. The `CLAUDE.md` file at the repo root is automatically loaded as project context.
-
-```bash
-cd /path/to/obsidian-wiki && claude "set up my wiki"
-```
-</details>
-
-<details>
-<summary>Cursor</summary>
-
-Skills are auto-discovered from `.cursor/skills/`. The `.cursor/rules/obsidian-wiki.mdc` file provides always-on context. Either run `setup.sh` or copy `.skills/*` to `.cursor/skills/`. Then type `/wiki-setup` in the chat.
-</details>
-
-<details>
-<summary>Windsurf</summary>
-
-Cascade reads rules from `.windsurf/rules/` and skills from `.windsurf/skills/`. Either run `setup.sh` or copy `.skills/*` to `.windsurf/skills/`. Then tell Cascade: "set up my wiki".
-</details>
-
-<details>
-<summary>Codex</summary>
-
-Reads `AGENTS.md` for project context. `setup.sh` installs skills globally to `~/.codex/skills/`. Either run `setup.sh` or manually symlink `.skills/*` to `~/.codex/skills/`.
-
-```bash
-cd /path/to/obsidian-wiki && codex "set up my wiki"
-```
-</details>
-
-<details>
-<summary>Gemini CLI</summary>
-
-Reads `GEMINI.md` and discovers global skills from `~/.gemini/skills/`. Either run `setup.sh` or manually symlink `.skills/*` to `~/.gemini/skills/`.
-
-```bash
-cd /path/to/obsidian-wiki && gemini "set up my wiki"
-```
-</details>
-
-<details>
-<summary>Google Antigravity</summary>
-
-Always-on via `.agent/rules/` + `.agent/workflows/`. `setup.sh` ships both files and symlinks skills into `.agents/skills/`. The legacy `~/.gemini/antigravity/skills/` path is also wired.
-</details>
-
-<details>
-<summary>Kiro IDE/CLI</summary>
-
-Always-on via `.kiro/steering/*.md` with `inclusion: always`. `setup.sh` symlinks `.skills/*` into both `.kiro/skills/` and `~/.kiro/skills/`. Invoke with `/wiki-ingest`, `/wiki-query`, etc.
-</details>
-
-<details>
-<summary>OpenCode / Aider / Factory Droid / Trae</summary>
-
-All read `AGENTS.md` at the repo root. `setup.sh` symlinks skills into `~/.agents/skills/` (shared discovery path). Trae also gets `~/.trae/skills/` and `~/.trae-cn/skills/`.
-</details>
-
-<details>
-<summary>Hermes</summary>
-
-Reads `.hermes.md` first, then falls back to `AGENTS.md`. Skills discovered from `~/.hermes/skills/`. Run `setup.sh` or manually symlink `.skills/*` there.
-
-```bash
-cd /path/to/obsidian-wiki && hermes "set up my wiki"
-# Mine Hermes history into the wiki:
-/wiki-history-ingest hermes
-```
-</details>
-
-<details>
-<summary>OpenClaw</summary>
-
-Reads `AGENTS.md` (priority 10). Discovers skills from `~/.openclaw/skills/` and `~/.agents/skills/`. Skills auto-register as slash commands.
-
-```bash
-cd /path/to/obsidian-wiki && openclaw "set up my wiki"
-# Mine OpenClaw history:
-/wiki-history-ingest openclaw
-```
-</details>
-
-<details>
-<summary>GitHub Copilot</summary>
-
-**VS Code Chat:** reads `.github/copilot-instructions.md`. Say "set up my wiki" in Copilot Chat.
-
-**CLI:** discovers skills from `~/.copilot/skills/`. Run `setup.sh` or manually symlink `.skills/*` there.
-</details>
-
-<details>
-<summary>Pi</summary>
-
-Reads `AGENTS.md` (walking up from cwd). Discovers skills from `.pi/skills/`, `.agents/skills/`, and `~/.pi/agent/skills/`. Run `setup.sh` or manually symlink `.skills/*` to `~/.pi/agent/skills/`.
-
-```bash
-cd /path/to/obsidian-wiki && pi "set up my wiki"
-# Mine Pi session history:
-/wiki-history-ingest pi
-```
-</details>
-
-</details>
-
-## How it works
-
-Every ingest runs through four stages:
-
-**1. Ingest** — The agent reads your source material directly. It handles whatever you throw at it: markdown files, PDFs (with page ranges), JSONL conversation exports, plain text logs, chat exports, meeting transcripts, and images (screenshots, whiteboard photos, diagrams — vision-capable model required). No preprocessing step, no pipeline to run. The agent reads the file the same way it reads code.
-
-**2. Pull Information** — From the raw source, the agent pulls out concepts, entities, claims, relationships, and open questions. A conversation about debugging a React hook yields a "stale closure" pattern. A research paper yields the key idea and its caveats. A work log yields decisions and their rationale. Noise gets dropped, signal gets kept. Each page also gets a 1–2 sentence `summary:` in its frontmatter at write time — later queries use this to preview pages without opening them.
-
-**3. Merge** — New knowledge gets merged against what's already in the wiki. If a concept page exists, the agent updates it — merging new information, noting contradictions, strengthening cross-references. If it's genuinely new, a page gets created. Nothing is duplicated. Sources are tracked in frontmatter so every claim stays attributable.
-
-**4. Schema** — The wiki schema isn't fixed upfront. It emerges from your sources and evolves as you add more. The agent maintains coherence: categories stay consistent, wikilinks point to real pages, the index reflects what's actually there. When you add a new domain (a new project, a new field of study), the schema expands to accommodate it without breaking what exists.
-
-A `.manifest.json` tracks every source that's been ingested — path, timestamps, which wiki pages it produced. On the next ingest, the agent computes the delta and only processes what's new or changed.
-
-
-## Visualization
-
-Through Global Graph View visualize every note and link within your entire vault. 
-- **Ribbon Icon**: Click the "Open graph view" icon (looks like a connected network) on the left-side ribbon.
-- **Command Palette**: Press Ctrl + P (Windows/Linux) or Cmd + P (Mac), type "Open graph view", and press Enter.
-
-<img width="1632" height="963" alt="obsidian-wiki" src="https://github.com/user-attachments/assets/f2980840-4b5b-438a-8264-5ad1de42f483" />
-
-### Color-coding the graph
-
-Say **"color my graph"**, **"color code by tag"**, **"color by category"**, or **"highlight visibility in graph"** and the `graph-colorize` skill rewrites `<vault>/.obsidian/graph.json` so Obsidian tints nodes by tag, folder, or visibility. It scans your actual vocabulary, picks a colorblind-friendly palette, backs up the existing `graph.json` first, and only touches the `colorGroups` field — your zoom, physics, and filter preferences stay intact. Reload Obsidian (Cmd/Ctrl+R) to see the change.
-
-Modes: `by-tag` (default — top 10 tags), `by-category` (the seven vault folders), `by-visibility` (highlight `visibility/pii` and `visibility/internal`), `combined` (visibility + tags), or `custom` (user-supplied mapping).
-
-## What we added on top of Karpathy's pattern
-
-- **Delta tracking.** A manifest tracks every source file that's been ingested: path, timestamps, which wiki pages it produced. When you come back later, it computes the delta and only processes what's new or changed. You're not re-ingesting your entire document library every time.
-
-- **Project-based organization.** Knowledge gets filed under projects when it's project-specific, globally when it's not. Both are cross-referenced with wikilinks. If you're working on 10 different codebases, each one gets its own space in the vault.
-
-- **Archive and rebuild.** When the wiki drifts too far from your sources, you can archive the whole thing (timestamped snapshot, nothing lost) and rebuild from scratch. Or restore any previous archive.
-
-- **Multi-agent ingest.** Documents, PDFs, Claude Code history (`~/.claude`), Codex sessions (`~/.codex/`), Hermes memories and sessions (`~/.hermes/`), OpenClaw MEMORY.md and sessions (`~/.openclaw/`), Pi sessions (`~/.pi/agent/sessions/`), Windsurf data (`~/.windsurf`), ChatGPT exports, Slack logs, meeting transcripts, raw text. There are dedicated skills for Claude, Codex, Hermes, OpenClaw, and Pi history, plus a catch-all ingest skill for arbitrary text exports.
-
-- **Cross-agent targeted search.** `/wiki-claude`, `/wiki-codex`, `/wiki-hermes`, `/wiki-openclaw`, `/wiki-copilot`, `/wiki-pi` — query-driven ingest from a specific agent's raw history. Say `/wiki-codex "rust ownership"` while in Claude Code and it finds your Codex sessions about that topic, extracts the relevant conversation blobs, distills them into wiki pages, and returns a synthesized answer you can use immediately. Different from bulk ingest: this is topic-first, not session-first. Each agent has its own extraction strategy (Codex rollout events, Claude JSONL turns, OpenClaw's pre-synthesized `MEMORY.md`, Pi tree-structured JSONL sessions, etc.). Pair with `/memory-bridge diff` to see what each tool uniquely contributed to a topic.
-
-- **Audit and lint.** Find orphaned pages, broken wikilinks, stale content, contradictions, missing frontmatter. See a dashboard of what's been ingested vs what's pending.
-
-- **Automated cross-linking.** After ingesting new pages, the cross-linker scans the vault for unlinked mentions and weaves them into the knowledge graph with `[[wikilinks]]`. No more orphan pages.
-
-- **Tag taxonomy.** A controlled vocabulary of canonical tags stored in `_meta/taxonomy.md`, with a skill that audits and normalizes tags across your entire vault.
-
-- **Provenance tracking.** Every claim on a wiki page is tagged: extracted (default), `^[inferred]` (LLM synthesis), or `^[ambiguous]` (sources disagree). A `provenance:` block in the frontmatter summarizes the mix per page, and `wiki-lint` flags pages that drift into mostly speculation. You can always tell what your wiki actually knows from what it guessed.
-
-- **Multimodal sources.** Screenshots, whiteboard photos, slide captures, and diagrams ingest the same way as text — the agent transcribes any visible text verbatim and tags interpreted content as inferred. Requires a vision-capable model.
-
-- **Wiki insights.** Beyond delta tracking, `wiki-status` can analyze the shape of your vault itself: top hubs, bridge pages (nodes whose removal would partition the graph), tag cluster cohesion scores, scored surprising connections, a graph delta since last run, and suggested questions the wiki structure is uniquely positioned to answer. Output goes to `_insights.md`.
-
-- **Graph export.** `wiki-export` turns the vault's wikilink graph into `graph.json` (queryable), `graph.graphml` (Gephi/yEd), `cypher.txt` (Neo4j), and a self-contained `graph.html` interactive browser visualization — no server required.
-
-- **Tiered retrieval.** `wiki-query` reads titles, tags, and page summaries first and only opens page bodies when the cheap pass can't answer. Say "quick answer" or "just scan" to force index-only mode. Keeps query cost roughly flat as your vault grows from 20 pages to 2000.
-
-- **QMD semantic search (optional).** [QMD](https://github.com/tobi/qmd) indexes your wiki and source documents for semantic search. When `QMD_WIKI_COLLECTION` is set in `.env`, `wiki-query` runs a lex+vec pass against the collection before falling back to Grep — enabling concept-level matches that exact-string search misses. When `QMD_PAPERS_COLLECTION` is set, `wiki-ingest` queries your indexed sources before writing a new page, surfacing related work, detecting contradictions, and deciding whether to create or merge. QMD can be used through MCP or the local CLI. Without QMD, both skills fall back to Grep/Glob and remain fully functional.
-
-- **`_raw/` staging directory.** Drop rough notes, clipboard pastes, or quick captures into `_raw/` inside your vault. The next `wiki-ingest` run promotes them to proper wiki pages and removes the originals. Configured via `OBSIDIAN_RAW_DIR` in `.env` (defaults to `_raw`).
-
-## Optional: QMD Semantic Search
-
-By default, `wiki-ingest` and `wiki-query` use `Grep`/`Glob` for search — fully functional, no extra setup. If your vault grows large or you want concept-level matches across your sources, you can plug in [QMD](https://github.com/tobi/qmd), either through MCP or by letting the agent call the local `qmd` CLI.
-
-**Setup:**
-
-1. Install QMD. If you want MCP mode, also add it to your MCP config (see the QMD repo for instructions).
-2. Index your wiki and/or source documents:
-   ```bash
-   qmd index --name wiki /path/to/your/vault
-   qmd index --name papers /path/to/your/sources
-   ```
-3. Set the collection names and transport in your `.env`:
-   ```env
-   QMD_WIKI_COLLECTION=wiki       # used by wiki-query
-   QMD_PAPERS_COLLECTION=papers   # used by wiki-ingest (source discovery)
-   QMD_TRANSPORT=mcp              # mcp | cli
-   QMD_CLI_SEARCH_MODE=quality    # quality | balanced | fast
-   ```
-
-`QMD_TRANSPORT=mcp` preserves the original behavior and uses an agent-configured QMD MCP server. `QMD_TRANSPORT=cli` runs the local `qmd` command directly. CLI mode defaults to `quality`, which uses `qmd query` with reranking for the best relevance. If that is too slow on CPU, set `QMD_CLI_SEARCH_MODE=balanced` to use `qmd query --no-rerank`, or `fast` for a lighter semantic pass.
-
-**What changes with QMD enabled:**
-
-- **`wiki-query`** runs a semantic pass (lex+vec) against your wiki collection before falling back to Grep. Finds conceptually related pages even when the exact terms don't match.
-- **`wiki-ingest`** queries your papers collection before writing a new page — surfaces related sources, spots contradictions, and decides whether to create a new page or merge into an existing one.
-
-Both skills degrade gracefully: if `QMD_WIKI_COLLECTION` / `QMD_PAPERS_COLLECTION` are not set, they skip the QMD step silently and use Grep instead.
-
-### `_raw/` Staging Directory
-
-`_raw/` is a staging area inside your vault for unprocessed captures — rough notes, clipboard pastes, quick voice-memo transcripts. Drop files there and the next `wiki-ingest` run will promote them to proper wiki pages and remove the originals.
-
-The fastest way to feed `_raw/` during a live coding session is `/wiki-quick-chat-capture` — it scans the current conversation, extracts bugs and gotchas, and writes structured draft files in under 60 seconds with no subagents or manifest writes.
-
-The directory is created automatically by `wiki-setup`. The path is configurable via `OBSIDIAN_RAW_DIR` in `.env` (defaults to `_raw`).
-
----
-
-## Skills
-
-Everything lives in `.skills/`. Each skill is a markdown file the agent reads when triggered:
-
-| Skill                   | What it does                                      | Slash Command            |
-| ----------------------- | ------------------------------------------------- | ------------------------ |
-| `wiki-setup`            | Initialize vault structure                        | `/wiki-setup`            |
-| `wiki-ingest`           | Distill documents into wiki pages                 | `/wiki-ingest`           |
-| `wiki-history-ingest`   | Unified history router (`claude`, `codex`, `hermes`, `pi`) | `/wiki-history-ingest <claude|codex|hermes|pi>` |
-| `claude-history-ingest` | Mine your `~/.claude` conversations and memories from Claude code and desktop  | `/claude-history-ingest` |
-| `codex-history-ingest`  | Mine your `~/.codex` sessions and rollout logs    | `/codex-history-ingest`  |
-| `hermes-history-ingest` | Mine your `~/.hermes` memories and sessions       | `/hermes-history-ingest` |
-| `openclaw-history-ingest` | Mine your `~/.openclaw` MEMORY.md and sessions  | `/openclaw-history-ingest` |
-| `copilot-history-ingest` | Mine your `~/.copilot` CLI session history       | `/copilot-history-ingest` |
-| `pi-history-ingest`     | Mine your `~/.pi/agent/sessions` JSONL history    | `/pi-history-ingest` |
-| `data-ingest`           | Ingest any text — chat exports, logs, transcripts | `/data-ingest`           |
-| `ingest-url`            | Fetch and ingest a URL directly into the wiki     | `/ingest-url <url>`      |
-| `obsidian-wiki-ingest`  | Project-scoped automation wrapper for wiki-ingest | `/obsidian-wiki-ingest`  |
-| `wiki-status`           | Show what's ingested, what's pending, the delta   | `/wiki-status`           |
-| `wiki-rebuild`          | Archive, rebuild from scratch, or restore         | `/wiki-rebuild`          |
-| `wiki-query`            | Answer questions from the wiki                    | `/wiki-query`            |
-| `wiki-lint`             | Find broken links, orphans, contradictions        | `/wiki-lint`             |
-| `cross-linker`          | Auto-discover and insert missing wikilinks        | `/cross-linker`          |
-| `tag-taxonomy`          | Enforce consistent tag vocabulary across pages    | `/tag-taxonomy`          |
-| `llm-wiki`              | The core pattern and architecture reference       | `/llm-wiki`              |
-| `wiki-update`           | Sync current project's knowledge into the vault   | `/wiki-update`           |
-| `wiki-export`           | Export vault graph to JSON, GraphML, Neo4j, HTML  | `/wiki-export`           |
-| `wiki-capture`          | Save the current conversation as a wiki note      | `/wiki-capture`          |
-| `wiki-quick-chat-capture` | Zero-friction mid-session finding capture to `_raw/` | `/wiki-quick-chat-capture` |
-| `wiki-research`         | Autonomous multi-round web research, self-filed   | `/wiki-research [topic]` |
-| `wiki-dashboard`        | Create dynamic Obsidian Bases dashboard views     | `/wiki-dashboard`        |
-| `wiki-synthesize`       | Discover and fill synthesis gaps across concepts  | `/wiki-synthesize`       |
-| `wiki-agent`            | Query-driven ingest from a specific agent's history | `/wiki-claude [topic]`, `/wiki-codex [topic]`, etc. |
-| `memory-bridge`         | Browse and diff knowledge by which AI tool wrote it | `/memory-bridge`         |
-| `daily-update`          | Daily maintenance cycle — freshness, index, hot cache | `/daily-update`        |
-| `impl-validator`        | Validate an implementation against its stated goal | `/impl-validator`       |
-| `graph-colorize`        | Color-code the Obsidian graph by tag/category/visibility | `/graph-colorize`   |
-| `skill-creator`         | Create new skills                                 | `/skill-creator`         |
-
-> **Note:** Slash commands (`/skill-name`) work in Claude Code, Cursor, and Windsurf. In other agents, just describe what you want and the agent will find the right skill.
-
-### Recommended: Obsidian Skills by Kepano
-
-We handle the knowledge management workflow — ingest, query, lint, rebuild. For Obsidian format mastery, we recommend installing [**kepano/obsidian-skills**](https://github.com/kepano/obsidian-skills) alongside this framework. These are optional but improve the quality of wiki output:
-
-| Skill | What it adds |
-|---|---|
-| `obsidian-markdown` | Teaches the agent correct Obsidian-flavored syntax — wikilinks, callouts, embeds, properties |
-| `obsidian-bases` | Create and edit `.base` files (database-like views of notes) |
-| `json-canvas` | Create and edit `.canvas` files (visual mind maps, flowcharts) |
-| `obsidian-cli` | Interact with a running Obsidian instance via CLI (search, create, manage notes) |
-| `defuddle` | Extract clean markdown from web pages — less noise than raw fetch, saves tokens during ingest |
-
-Both projects use the same [Agent Skills spec](https://agentskills.io/specification), so they coexist in the same `.skills/` directory with no conflicts.
-
-**Install:**
-
-```bash
-npx skills add kepano/obsidian-skills
-```
-
-After installing, your agent will automatically pick up the new skills alongside the existing wiki skills.
-
-## Project Structure
-
-```
-obsidian-wiki/
-├── .skills/                          # ← Canonical skill definitions (source of truth)
-│   ├── wiki-setup/SKILL.md
-│   ├── wiki-ingest/SKILL.md
-│   ├── wiki-history-ingest/SKILL.md
-│   ├── claude-history-ingest/SKILL.md
-│   ├── codex-history-ingest/SKILL.md
-│   ├── hermes-history-ingest/SKILL.md
-│   ├── openclaw-history-ingest/SKILL.md
-│   ├── pi-history-ingest/SKILL.md
-│   ├── data-ingest/SKILL.md
-│   ├── wiki-status/SKILL.md
-│   ├── wiki-rebuild/SKILL.md
-│   ├── wiki-query/SKILL.md
-│   ├── wiki-lint/SKILL.md
-│   ├── cross-linker/SKILL.md
-│   ├── tag-taxonomy/SKILL.md
-│   ├── wiki-update/SKILL.md
-│   ├── llm-wiki/SKILL.md
-│   ├── wiki-export/SKILL.md
-│   └── skill-creator/SKILL.md
-│
-├── CLAUDE.md                            # Bootstrap → Claude Code / Kilocode (→ AGENTS.md)
-├── GEMINI.md                            # Bootstrap → Gemini CLI (→ AGENTS.md)
-├── AGENTS.md                            # Bootstrap → Codex, OpenCode, Aider, Droid, Trae, Hermes, OpenClaw, Kilocode
-├── .hermes.md                           # Bootstrap → Hermes (symlink → AGENTS.md)
-├── .cursor/rules/obsidian-wiki.mdc      # Always-on → Cursor (alwaysApply: true)
-├── .windsurf/rules/obsidian-wiki.md     # Always-on → Windsurf
-├── .kiro/steering/obsidian-wiki.md      # Always-on → Kiro (inclusion: always)
-├── .agent/rules/obsidian-wiki.md        # Always-on → Google Antigravity
-├── .agent/workflows/obsidian-wiki.md    # Slash-command registry → Google Antigravity
-├── .github/copilot-instructions.md      # Always-on → GitHub Copilot (VS Code Chat)
-│
-├── .claude/skills/   → symlinks to .skills/*  (created by setup.sh)
-├── .cursor/skills/   → symlinks to .skills/*  (created by setup.sh)
-├── .windsurf/skills/ → symlinks to .skills/*  (created by setup.sh)
-├── .agents/skills/   → symlinks to .skills/*  (created by setup.sh)
-├── .pi/skills/       → symlinks to .skills/*  (created by setup.sh)
-├── .kiro/skills/     → symlinks to .skills/*  (created by setup.sh)
-│
-├── ~/.claude/skills/              → portable skills (wiki-update, wiki-query)
-├── ~/.gemini/skills/              → global symlinks — Gemini CLI
-├── ~/.gemini/antigravity/skills/  → global symlinks — Antigravity (legacy path)
-├── ~/.codex/skills/               → global symlinks — Codex
-├── ~/.hermes/skills/              → global symlinks — Hermes
-├── ~/.openclaw/skills/            → global symlinks — OpenClaw (managed)
-├── ~/.copilot/skills/             → global symlinks — GitHub Copilot CLI
-├── ~/.trae/skills/                → global symlinks — Trae
-├── ~/.trae-cn/skills/             → global symlinks — Trae CN
-├── ~/.kiro/skills/                → global symlinks — Kiro CLI
-├── ~/.pi/agent/skills/            → global symlinks — Pi
-├── ~/.agents/skills/              → global symlinks — OpenCode, Aider, Droid, generic
-│
-├── setup.sh                          # One-command agent setup
-├── .env.example                      # Configuration template
-├── README.md                         # You are here
-└── SETUP.md                          # Detailed setup guide
-```
-
-## Using from other projects
-
-The whole point is that your wiki should stay up to date as you work across different codebases. You don't want to come back to the obsidian-wiki repo every time. So `setup.sh` installs two global skills that work from any project: `wiki-update` and `wiki-query`.
-
-When you run `bash setup.sh`, it does the following:
-
-1. Writes a config to `~/.obsidian-wiki/config` with your vault path and the repo location. This is how the skills know where to read and write.
-2. Symlinks `wiki-update` and `wiki-query` into `~/.claude/skills/` so they're available everywhere in Claude Code.
-3. Symlinks all skills into every agent's global discovery path:
-   - `~/.gemini/skills/` — Gemini CLI (canonical)
-   - `~/.gemini/antigravity/skills/` — Google Antigravity (legacy)
-   - `~/.codex/skills/` — Codex
-   - `~/.hermes/skills/` — Hermes
-   - `~/.openclaw/skills/` — OpenClaw (managed)
-   - `~/.copilot/skills/` — GitHub Copilot CLI
-   - `~/.trae/skills/` + `~/.trae-cn/skills/` — Trae / Trae CN
-   - `~/.kiro/skills/` — Kiro CLI
-   - `~/.pi/agent/skills/` — Pi
-   - `~/.agents/skills/` — OpenCode, Aider, Factory Droid, and other AGENTS.md-aware agents
-
-After that, you're in some project, say `~/projects/my-cool-app`, working with Claude or Pi. Two commands:
-
-```bash
-# You're working on some project
-cd ~/projects/my-cool-app
-claude
-
-# Write to the wiki: distill what you've learned
-> /wiki-update
-
-# Read from the wiki: pull context about anything you've captured before
-> /wiki-query what do I know about rate limiting?
-```
-
-`/wiki-update` reads your project, figures out what's worth keeping, and distills it into your Obsidian vault. Architecture decisions, patterns you discovered, key concepts, trade-offs you evaluated. It doesn't copy code or dump file listings. It distills the stuff you'd forget in 3 months. Next time you run it from the same project, it checks what changed since last sync (via git log) and only processes the delta.
-
-`/wiki-query` goes the other direction. You're working on something and you want to know what your wiki says about a topic. Maybe you solved a similar problem 2 months ago in a different project and the answer is already in your vault. The agent searches the wiki, reads the relevant pages, and gives you a synthesized answer with citations.
-
-Both skills follow the same Karpathy pattern as everything else. If a concept page already exists in the vault, it merges into it. Everything gets cross-linked with `[[wikilinks]]`, tracked in `.manifest.json`, and logged.
-
-## Contributing
-
-This is early. The skills work but there's a lot of room to make them smarter — better cross-referencing, smarter deduplication, handling larger vaults, new ingest sources. If you've been thinking about this problem or have a workflow that could be a skill, PRs are welcome.
-
-### Adding a new skill
-
-1. Create a folder in `.skills/your-skill-name/`
-2. Add a `SKILL.md` with YAML frontmatter (`name`, `description`) and markdown instructions
-3. Run `bash setup.sh` to symlink into all agent directories
-4. Test with your agent by saying something that matches the description
-
-See `.skills/skill-creator/SKILL.md` for the full guide on writing effective skills.
+许可证和上游通用说明以 [Ar9av/obsidian-wiki](https://github.com/Ar9av/obsidian-wiki) 为准。
