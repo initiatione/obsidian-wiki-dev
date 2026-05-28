@@ -15,10 +15,26 @@ You are answering questions against a compiled Obsidian wiki, not raw source doc
 
 ## Before You Start
 
-1. **Resolve config** — follow the Config Resolution Protocol in `llm-wiki/SKILL.md` (walk up CWD for `.env` → `~/.obsidian-wiki/config` → prompt setup). Prefer `~/.obsidian-wiki/config` for cross-project queries when present, even if it is a symlink to the vault `.env`. This gives `OBSIDIAN_VAULT_PATH` and any QMD variables. Works from any project directory.
+1. **Resolve config** — follow the Config Resolution Protocol in `llm-wiki/SKILL.md` (walk up CWD for `.env` → `~/.obsidian-wiki/config` → prompt setup). Prefer `~/.obsidian-wiki/config` for cross-project queries when present, even if it is a symlink to the vault `.env`. This gives `OBSIDIAN_VAULT_PATH`, `QMD_WIKI_COLLECTION`, `QMD_PAPERS_COLLECTION`, `QMD_CLI`, and any other tool-specific overrides. Works from any project directory.
 2. **Load QMD settings from the resolved config** before deciding retrieval strategy. If `QMD_WIKI_COLLECTION` is set, treat QMD as available subject only to transport/tool checks below. If it is empty or unset, say briefly why QMD is being skipped before using grep/page reads.
 3. If `$OBSIDIAN_VAULT_PATH/hot.md` exists, read it first — it gives you instant context on recent activity. If the user's question is about something ingested recently, hot.md may answer it before you even open `index.md`.
 4. Read `$OBSIDIAN_VAULT_PATH/index.md` to understand the wiki's scope and structure
+5. If the question touches vault architecture, directory meaning, schema/governance, special files, or tag policy, read `$OBSIDIAN_VAULT_PATH/_meta/schema.md`, `$OBSIDIAN_VAULT_PATH/_meta/directory-structure.md`, and `$OBSIDIAN_VAULT_PATH/_meta/taxonomy.md` when present before answering.
+
+## QMD Resolution (optional)
+
+If `QMD_WIKI_COLLECTION` is set, resolve the QMD interface in this order:
+
+1. **MCP first** — if a `qmd` MCP tool is available, prefer it.
+2. **Configured CLI second** — if `QMD_CLI` is set, use that command (for example `qmd-win` in a wrapper-based WSL setup).
+3. **Plain CLI third** — fall back to `qmd` on `PATH`.
+4. If none of the above are available, skip the QMD pass and continue with the grep-based flow.
+
+When using the CLI path, prefer:
+
+- `qmd query "<question>" -c <collection>` for semantic retrieval
+- `qmd search "<keywords>" -c <collection>` for exact-term fallback
+- `qmd get <qmd://...>` when QMD returns a ranked document URI you need to inspect more closely
 
 ## Visibility Filter (optional)
 

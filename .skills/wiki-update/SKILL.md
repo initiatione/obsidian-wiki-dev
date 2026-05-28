@@ -13,9 +13,27 @@ You are distilling knowledge from the current project into the user's Obsidian w
 
 ## Before You Start
 
-1. **Resolve config** — follow the Config Resolution Protocol in `llm-wiki/SKILL.md` (walk up CWD for `.env` → `~/.obsidian-wiki/config` → prompt setup). This gives `OBSIDIAN_VAULT_PATH`, `OBSIDIAN_WIKI_REPO`, `OBSIDIAN_LINK_FORMAT` (`wikilink` default or `markdown`), and optional QMD settings such as `QMD_WIKI_COLLECTION`. Works from any project directory.
-3. Read `$OBSIDIAN_VAULT_PATH/.manifest.json` to check if this project has been synced before.
-4. Read `$OBSIDIAN_VAULT_PATH/index.md` to know what the wiki already contains.
+1. **Resolve config** — follow the Config Resolution Protocol in `llm-wiki/SKILL.md` (walk up CWD for `.env` → `~/.obsidian-wiki/config` → prompt setup). This gives `OBSIDIAN_VAULT_PATH`, `OBSIDIAN_WIKI_REPO`, `OBSIDIAN_LINK_FORMAT` (`wikilink` default or `markdown`), `QMD_WIKI_COLLECTION`, `QMD_CLI`, and any other tool-specific overrides. Works from any project directory.
+2. Read `$OBSIDIAN_VAULT_PATH/.manifest.json` to check if this project has been synced before.
+3. Read `$OBSIDIAN_VAULT_PATH/index.md` to know what the wiki already contains.
+4. If `$OBSIDIAN_VAULT_PATH/_meta/schema.md` exists, read it before deciding routing or merge/split behavior.
+5. If `$OBSIDIAN_VAULT_PATH/_meta/taxonomy.md` exists, read it before assigning tags.
+
+## Optional QMD Recall Pass
+
+If `QMD_WIKI_COLLECTION` is configured, use QMD to look for nearby existing pages before deciding what to write:
+
+1. Prefer an MCP `qmd` query tool if available.
+2. Otherwise use `QMD_CLI` if set.
+3. Otherwise use plain `qmd`.
+
+Use the current project name, major technologies, and architectural themes as the query terms. The goal is to surface:
+
+- global concept pages that should be updated instead of duplicated
+- existing project pages with similar patterns
+- synthesis pages that should receive a new cross-project insight
+
+If QMD isn't available, continue with the current index + grep workflow.
 
 When writing internal links in Steps 4–5, apply the link format from `llm-wiki/SKILL.md` (Link Format section) using the `OBSIDIAN_LINK_FORMAT` value.
 
@@ -244,5 +262,6 @@ Record QMD refresh in the final report as one of:
 
 - **Be aggressive about merging.** If the project uses React Server Components, don't create a new page if `concepts/react-server-components.md` already exists. Update the existing one and add this project as a source.
 - **Consult the tag taxonomy.** Read `$VAULT/_meta/taxonomy.md` if it exists, and use canonical tags.
+- **Follow the local schema.** Read `$VAULT/_meta/schema.md` if it exists, especially when deciding whether something should stay project-local or be promoted globally.
 - **Don't copy code.** Distill the *knowledge*, not the implementation. "This project uses a debounced search pattern with 300ms delay" is useful. Pasting the actual debounce function is not.
 - **Project overview is the anchor.** The `<project-name>.md` file is what you'd read to get oriented. Make it good.

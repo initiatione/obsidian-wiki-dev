@@ -24,9 +24,12 @@ $OBSIDIAN_VAULT_PATH/
 ├── .manifest.json          # Tracks every ingested source: path, timestamps, pages produced
 ├── _meta/
 │   ├── taxonomy.md         # Controlled tag vocabulary
+│   ├── schema.md           # Vault-local routing and maintenance contract
+│   ├── directory-structure.md # Live directory map and file semantics
 │   └── *.base              # Obsidian Bases dashboard definitions (wiki-dashboard skill)
 ├── _insights.md            # Graph analysis output (hubs, bridges, dead ends)
 ├── _raw/                   # Staging area — drop rough notes here, next ingest promotes them
+├── _archives/              # Snapshot store for rebuild-safe checkpoints
 ├── concepts/               # Abstract ideas, patterns, mental models
 ├── entities/               # Concrete things — people, tools, libraries, companies
 ├── skills/                 # How-to knowledge, techniques, procedures
@@ -37,7 +40,17 @@ $OBSIDIAN_VAULT_PATH/
     └── <project-name>.md   # One page per project synced via wiki-update
 ```
 
-Every wiki page has required frontmatter: `title`, `category`, `tags`, `sources`, `created`, `updated`. Pages connect via internal links — `[[wikilinks]]` by default, or standard Markdown links when `OBSIDIAN_LINK_FORMAT=markdown` is set in config.
+Every wiki page should have durable frontmatter such as `title`, `summary`, `tags`, and `updated`. `sources`, `provenance`, and `aliases` are strongly preferred. `category` is optional when the directory already encodes the page class. Pages connect via internal links — `[[wikilinks]]` by default, or standard Markdown links when `OBSIDIAN_LINK_FORMAT=markdown` is set in config.
+
+## Vault-Local Schema
+
+The abstract `llm-wiki` pattern is not sufficient on its own once a vault becomes long-lived. When present, treat these files as the live local contract for this specific vault:
+
+- `_meta/schema.md` — routing rules, merge/split policy, contradiction handling, and special-file semantics
+- `_meta/taxonomy.md` — canonical tag vocabulary and alias rules
+- `_meta/directory-structure.md` — directory responsibilities and special-file meanings
+
+If these files exist, prefer them over generic assumptions when answering structure questions or planning writes.
 
 ## Skill Routing
 
@@ -125,7 +138,8 @@ See `wiki-query` and `wiki-export` skills for how the filter is applied.
 - **Compile, don't retrieve.** The wiki is pre-compiled knowledge. Update existing pages — don't append or duplicate.
 - **Track everything.** Update `.manifest.json` after ingesting, `index.md`, `log.md`, and `hot.md` after any write operation.
 - **Connect with `[[wikilinks]]`.** Every page should link to related pages. This is what makes it a knowledge graph, not a folder of files.
-- **Frontmatter is required.** Every wiki page needs: `title`, `category`, `tags`, `sources`, `created`, `updated`.
+- **Use the local schema when available.** Prefer `_meta/schema.md` and `_meta/taxonomy.md` over generic pattern guesses.
+- **Frontmatter should be durable, not ceremonial.** Prefer fields that improve retrieval, provenance, and maintenance over blindly filling every possible key.
 - **Single source of truth.** Visibility tags shape how content is surfaced — they don't duplicate or separate it.
 - **Keep context warm.** `hot.md` is a ~500-word semantic snapshot of recent activity. Every write skill updates it so the next session can pick up where the last one left off without crawling the full vault.
 
@@ -146,4 +160,4 @@ Do not rewrite workflow or skill pages into Chinese unless the user explicitly a
 
 ## Architecture Reference
 
-For the full pattern (three-layer architecture, page templates, project org), read `.skills/llm-wiki/SKILL.md`.
+For the full pattern, read `.skills/llm-wiki/SKILL.md`. For this vault's concrete runtime contract, also read `_meta/schema.md`, `_meta/taxonomy.md`, and `_meta/directory-structure.md` when present.

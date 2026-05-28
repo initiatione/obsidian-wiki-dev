@@ -35,6 +35,14 @@ The wiki lives at the path configured via `OBSIDIAN_VAULT_PATH` in `.env`.
 
 The rules governing how the wiki is structured — categories, conventions, page templates, and operational workflows. The schema tells the LLM *how* to maintain the wiki.
 
+In mature vaults, this layer may also include vault-local contract files under `_meta/`, such as:
+
+- `_meta/schema.md` — live routing and maintenance contract for that specific vault
+- `_meta/taxonomy.md` — controlled vocabulary for tags
+- `_meta/directory-structure.md` — current directory map and special-file semantics
+
+When these files exist, they are the local adaptation layer for this abstract pattern.
+
 ## Wiki Organization
 
 The vault has two levels of structure: **categories** (what kind of knowledge) and **projects** (where the knowledge came from).
@@ -148,6 +156,15 @@ The manifest enables:
 - **Append mode** — only process the delta, not everything
 - **Audit** — which source produced which wiki page
 - **Staleness detection** — source changed but wiki page hasn't been updated
+
+### Optional vault-local schema files
+
+These are not required for the minimal pattern, but they become valuable once the vault grows:
+
+- `_meta/schema.md` — the explicit local contract
+- `_meta/taxonomy.md` — controlled tag vocabulary
+- `_meta/directory-structure.md` — live layout explanation
+- `_insights.md` — regenerable structural analysis output
 
 ## Page Template
 

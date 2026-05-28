@@ -18,6 +18,7 @@ You are computing the current state of the wiki: what's been ingested, what's ne
 
 1. **Resolve config** — follow the Config Resolution Protocol in `llm-wiki/SKILL.md` (walk up CWD for `.env` → `~/.obsidian-wiki/config` → prompt setup). This gives `OBSIDIAN_VAULT_PATH`, `OBSIDIAN_SOURCES_DIR`, `CLAUDE_HISTORY_PATH`, and `CODEX_HISTORY_PATH`.
 2. Read `.manifest.json` at the vault root — this is the ingest tracking ledger
+3. If present, read `_meta/schema.md`, `_meta/directory-structure.md`, and `_meta/taxonomy.md` to understand the expected live-vault structure and controlled vocabulary.
 
 ## The Manifest
 
