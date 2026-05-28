@@ -17,6 +17,10 @@ You are exporting the wiki's wikilink graph to structured formats so it can be u
 1. **Resolve config** — follow the Config Resolution Protocol in `llm-wiki/SKILL.md` (walk up CWD for `.env` → `~/.obsidian-wiki/config` → prompt setup). This gives `OBSIDIAN_VAULT_PATH`
 2. Confirm the vault has pages to export — if fewer than 5 pages exist, warn the user and stop
 
+## Optional Obsidian Companion Skills
+
+The default export remains `graph.json`, `graph.graphml`, `cypher.txt`, and `graph.html`. If the user explicitly asks for an Obsidian Canvas, `.canvas` file, mind map, or flowchart, use `json-canvas` as the Canvas format reference and keep this skill responsible for selecting wiki nodes and edges.
+
 ## Project Filter (optional)
 
 If the user's invocation includes a project name — e.g. `/wiki-export prismor`, `"export the prismor project"`, `"export project:security"` — activate **project filter mode**:

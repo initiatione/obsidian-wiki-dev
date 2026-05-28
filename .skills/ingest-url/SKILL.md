@@ -53,7 +53,9 @@ Once you have a candidate name, check whether `$OBSIDIAN_VAULT_PATH/projects/<pr
 
 ## Step 0.5: Clean Extraction Preflight
 
-Before fetching, check whether the `defuddle` CLI is available:
+Before fetching an ordinary web page, prefer Defuddle clean extraction when available. If the URL ends in `.md`, skip Defuddle and fetch it directly as markdown.
+
+If the `defuddle` companion skill is installed, use its workflow. Otherwise check whether the `defuddle` CLI is available:
 
 ```bash
 which defuddle

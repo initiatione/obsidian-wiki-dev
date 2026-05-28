@@ -71,6 +71,25 @@
 
 本机安装默认排除其他 agent 专属历史 skill：`hermes-history-ingest`、`openclaw-history-ingest`、`copilot-history-ingest`、`pi-history-ingest`。这些文件保留在仓库里，方便继续跟上游合并，但不进入我的 Codex/Claude 常用 skill 面。
 
+## Obsidian Companion Skills
+
+本分支可以和 [kepano/obsidian-skills](https://github.com/kepano/obsidian-skills) 并列安装。它不是替代 `wiki-*`，而是 Obsidian 格式与工具能力层。
+
+| Companion skill | 在本系统中的角色 |
+|---|---|
+| `obsidian-markdown` | 帮助写出 Obsidian-flavored Markdown：properties、wikilinks、embeds、callouts、tags |
+| `obsidian-bases` | 帮助创建和编辑 `.base` dashboard |
+| `json-canvas` | 当用户明确要 Canvas、mind map、flowchart 时，帮助生成 `.canvas` |
+| `obsidian-cli` | 仅在需要和运行中的 Obsidian app 交互时使用 |
+| `defuddle` | 网页 ingest / research 前清洗网页正文，减少噪声和 token |
+
+协作原则：
+
+- `wiki-*` 仍是知识工作流主控，决定读什么、写什么、合并到哪里、如何标注 provenance。
+- 目标 vault 的 `AGENTS.md` 和 `_meta/*` 永远高于 companion skill 的默认格式建议。
+- companion skill 缺失或工具不可用时，`wiki-*` 应回退到自身流程，不应阻塞普通 wiki 维护。
+- `obsidian-cli` 不用于常规 markdown 写入；只有用户明确要求 live Obsidian 操作时才使用。
+
 ## Wiki 维护思路
 
 这个分支倾向把 wiki 当作长期知识系统，而不是资料堆。

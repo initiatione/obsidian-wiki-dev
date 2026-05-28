@@ -43,6 +43,20 @@ In mature vaults, this layer may also include vault-local contract files under `
 
 When these files exist, they are the local adaptation layer for this abstract pattern.
 
+## Optional Obsidian Companion Skills
+
+This wiki skill family may be installed alongside `kepano/obsidian-skills`. Treat those skills as optional Obsidian format/tool companions, not as workflow authorities.
+
+- `wiki-*` skills remain responsible for knowledge workflow: source reading, distillation, routing, merge decisions, provenance, manifest/index/log/hot maintenance, QMD refresh, and query strategy.
+- Vault-local rules (`AGENTS.md` and `_meta/*`) remain higher priority than all companion skill defaults.
+- Use `obsidian-markdown` when writing Obsidian syntax-sensitive markdown: wikilinks, embeds, callouts, properties/frontmatter, tags, and Obsidian-safe note syntax.
+- Use `obsidian-bases` when creating or editing `.base` dashboard files.
+- Use `json-canvas` only when the user explicitly asks for an Obsidian Canvas, `.canvas` file, mind map, or flowchart output.
+- Use `defuddle` for ordinary web page extraction before raw fetch when available; skip it for `.md` URLs and fall back cleanly when unavailable.
+- Use `obsidian-cli` only when the user explicitly asks to interact with a running Obsidian app or when live Obsidian state is required. Do not use it for routine markdown file writes.
+
+If a companion skill is not installed or its CLI/tooling is unavailable, continue with the native `wiki-*` fallback path and report the fallback only when it matters to the result.
+
 ## Wiki Organization
 
 The vault has two levels of structure: **categories** (what kind of knowledge) and **projects** (where the knowledge came from).

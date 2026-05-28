@@ -2,6 +2,7 @@
 param(
     [switch]$Apply,
     [string]$RepoRoot,
+    [string]$CompanionRoot,
     [string[]]$TargetRoots = @(
         (Join-Path $env:USERPROFILE ".codex\skills"),
         (Join-Path $env:USERPROFILE ".claude\skills")
@@ -12,7 +13,15 @@ param(
         "copilot-history-ingest",
         "pi-history-ingest"
     ),
-    [string[]]$SkillNames
+    [string[]]$SkillNames,
+    [string[]]$CompanionSkillNames = @(
+        "obsidian-markdown",
+        "obsidian-bases",
+        "json-canvas",
+        "obsidian-cli",
+        "defuddle"
+    ),
+    [switch]$SkipCompanionSkills
 )
 
 Set-StrictMode -Version Latest
@@ -87,11 +96,44 @@ if (-not $SkillNames -or $SkillNames.Count -eq 0) {
         Select-Object -ExpandProperty Name
 }
 
+$skillLinks = @()
+foreach ($skill in ($SkillNames | Sort-Object -Unique)) {
+    $skillLinks += [pscustomobject]@{
+        Name = $skill
+        Source = Join-Path $sourceRoot $skill
+        Origin = "wiki"
+    }
+}
+
+if (-not $SkipCompanionSkills) {
+    if ([string]::IsNullOrWhiteSpace($CompanionRoot)) {
+        $CompanionRoot = Join-Path (Split-Path -Parent $repoRootPath) "obsidian-skills\skills"
+    }
+
+    $companionRootPath = Get-NormalizedPath $CompanionRoot
+    if (Test-Path -LiteralPath $companionRootPath -PathType Container) {
+        foreach ($skill in ($CompanionSkillNames | Sort-Object -Unique)) {
+            $skillLinks += [pscustomobject]@{
+                Name = $skill
+                Source = Join-Path $companionRootPath $skill
+                Origin = "companion"
+            }
+        }
+    }
+    else {
+        Write-Warning "Companion skill root not found, skipping companion skills: $companionRootPath"
+    }
+}
+
 $timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
 $mode = if ($Apply) { "APPLY" } else { "DRY-RUN" }
 Write-Host "Mode: $mode"
 Write-Host "Repo: $repoRootPath"
-Write-Host "Skills: $($SkillNames -join ', ')"
+Write-Host "Wiki skills: $($SkillNames -join ', ')"
+if (-not $SkipCompanionSkills -and (Test-Path -LiteralPath (Get-NormalizedPath $CompanionRoot) -PathType Container)) {
+    Write-Host "Companion root: $(Get-NormalizedPath $CompanionRoot)"
+    Write-Host "Companion skills: $($CompanionSkillNames -join ', ')"
+}
 
 foreach ($targetRootRaw in $TargetRoots) {
     $targetRoot = Get-NormalizedPath $targetRootRaw
@@ -108,12 +150,14 @@ foreach ($targetRootRaw in $TargetRoots) {
         }
     }
 
-    foreach ($skill in $SkillNames) {
-        $source = Join-Path $sourceRoot $skill
+    foreach ($skillLink in $skillLinks) {
+        $skill = $skillLink.Name
+        $source = $skillLink.Source
+        $origin = $skillLink.Origin
         $dest = Join-Path $targetRoot $skill
 
         if (-not (Test-Path -LiteralPath $source -PathType Container)) {
-            Write-Warning "Skip missing source skill: $skill"
+            Write-Warning "Skip missing $origin source skill: $skill"
             continue
         }
 
@@ -128,7 +172,7 @@ foreach ($targetRootRaw in $TargetRoots) {
             if ($linkType) {
                 $existingTarget = Get-LinkTarget $item
                 if ($existingTarget -and ((Get-NormalizedPath $existingTarget).Equals((Get-NormalizedPath $source), [StringComparison]::OrdinalIgnoreCase))) {
-                    Write-Host ("  OK      {0} -> {1}" -f $skill, $source)
+                    Write-Host ("  OK      [{0}] {1} -> {2}" -f $origin, $skill, $source)
                     continue
                 }
                 $action = "replace-link"
@@ -139,7 +183,7 @@ foreach ($targetRootRaw in $TargetRoots) {
         }
 
         if (-not $Apply) {
-            Write-Host ("  WOULD   {0}: {1} -> {2}" -f $action, $dest, $source)
+            Write-Host ("  WOULD   [{0}] {1}: {2} -> {3}" -f $origin, $action, $dest, $source)
             continue
         }
 
@@ -162,7 +206,7 @@ foreach ($targetRootRaw in $TargetRoots) {
         }
 
         New-Item -ItemType Junction -Path $dest -Target $source | Out-Null
-        Write-Host ("  LINK    {0} -> {1}" -f $dest, $source)
+        Write-Host ("  LINK    [{0}] {1} -> {2}" -f $origin, $dest, $source)
     }
 }
 

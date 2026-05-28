@@ -19,6 +19,10 @@ Two tools available: **Obsidian Bases** (native, GUI-driven, no plugin) and **Da
 3. Ask the user what they want to view if not specified — folder, tag, category, date range?
 4. Ask if they have Dataview installed if you're unsure which tool to use.
 
+## Optional Obsidian Companion Skills
+
+If `obsidian-bases` is installed and you are creating or editing `.base` files, use it as the Obsidian Bases syntax reference. This skill still decides the dashboard purpose, target vault path, log entry, and whether Bases or Dataview is the right tool for the user's request.
+
 ---
 
 ## Option A — Obsidian Bases (`.base` files)

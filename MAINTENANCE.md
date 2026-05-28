@@ -21,12 +21,19 @@ git remote -v
 
 ## 本机安装
 
-本机用 Windows junction 把选定 skill 指向当前分支的 `.skills/`。
+本机用 Windows junction 把选定 skill 指向当前分支的 `.skills/`，并可额外指向 kepano companion 仓库的 `skills/`。
 
 目标目录：
 
 - `C:\Users\liuchf\.codex\skills`
 - `C:\Users\liuchf\.claude\skills`
+
+首次准备 companion 仓库：
+
+```powershell
+cd C:\Users\liuchf\tools
+git clone https://github.com/kepano/obsidian-skills.git
+```
 
 先 dry-run：
 
@@ -51,10 +58,24 @@ powershell -ExecutionPolicy Bypass -File .\scripts\sync-liuchf-skills.ps1 -Apply
 - `copilot-history-ingest`
 - `pi-history-ingest`
 
+默认额外同步 kepano companion skills：
+
+- `obsidian-markdown`
+- `obsidian-bases`
+- `json-canvas`
+- `obsidian-cli`
+- `defuddle`
+
 如需临时同步指定 skill：
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\sync-liuchf-skills.ps1 -Apply -SkillNames wiki-query,wiki-update
+```
+
+如需只同步 wiki skills、不同步 companion skills：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\sync-liuchf-skills.ps1 -Apply -SkipCompanionSkills
 ```
 
 ## 更新上游
@@ -71,6 +92,12 @@ git push origin main --force-with-lease
 git switch liuchf/wiki-skills
 git rebase upstream/main
 git push origin liuchf/wiki-skills --force-with-lease
+```
+
+更新 kepano companion 仓库：
+
+```powershell
+git -C C:\Users\liuchf\tools\obsidian-skills pull --ff-only
 ```
 
 冲突处理原则：
@@ -135,6 +162,15 @@ Get-Item C:\Users\liuchf\.claude\skills\wiki-query
 ```powershell
 Test-Path C:\Users\liuchf\.codex\skills\wiki-query\SKILL.md
 Test-Path C:\Users\liuchf\.claude\skills\wiki-query\SKILL.md
+Test-Path C:\Users\liuchf\.codex\skills\obsidian-markdown\SKILL.md
+Test-Path C:\Users\liuchf\.claude\skills\obsidian-markdown\SKILL.md
+```
+
+检查 companion junction：
+
+```powershell
+Get-Item C:\Users\liuchf\.codex\skills\obsidian-markdown
+Get-Item C:\Users\liuchf\.claude\skills\obsidian-markdown
 ```
 
 检查 Claude firecrawl skills 没被误动：
@@ -161,4 +197,5 @@ Codex 和 Claude 当前均通过 junction 指向：
 
 ```text
 C:\Users\liuchf\tools\obsidian-wiki\.skills\
+C:\Users\liuchf\tools\obsidian-skills\skills\
 ```

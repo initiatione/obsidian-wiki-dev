@@ -34,6 +34,10 @@ If `QMD_PAPERS_COLLECTION` or `QMD_WIKI_COLLECTION` is set, resolve the QMD inte
 3. **Plain CLI third** — fall back to `qmd` on `PATH`.
 4. If no QMD surface is available, skip the QMD step and continue with grep-based checks.
 
+## Optional Obsidian Companion Skills
+
+If `obsidian-markdown` is installed, use it as a syntax reference when writing Obsidian-sensitive markdown: properties/frontmatter, wikilinks, embeds, callouts, tags, and note-safe formatting. It does not decide page routing, schema fields, tag taxonomy, provenance, staging, or merge behavior; those remain controlled by this skill and the target vault contract.
+
 ## Language Policy for Writes
 
 When writing or updating wiki pages:

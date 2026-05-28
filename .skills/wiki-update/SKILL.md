@@ -37,6 +37,10 @@ If QMD isn't available, continue with the current index + grep workflow.
 
 When writing internal links in Steps 4–5, apply the link format from `llm-wiki/SKILL.md` (Link Format section) using the `OBSIDIAN_LINK_FORMAT` value.
 
+## Optional Obsidian Companion Skills
+
+If `obsidian-markdown` is installed, use it as a syntax reference when writing Obsidian-sensitive markdown: properties/frontmatter, wikilinks, embeds, callouts, tags, and note-safe formatting. It does not decide what project knowledge is worth preserving, where pages go, which tags are canonical, or how provenance is marked; those remain controlled by this skill and the target vault contract.
+
 ## Language Policy for Writes
 
 When syncing project knowledge into the wiki:

@@ -38,7 +38,7 @@ If the file doesn't exist, proceed with defaults.
 
 1. Decompose the topic into **3-5 distinct angles** (e.g., for "vector databases": what they are, when to use them, leading implementations, trade-offs, production gotchas)
 2. For each angle, run **2-3 `WebSearch` queries** using varied phrasing
-3. For the top 2-3 results per angle, use `WebFetch` (or `defuddle <url>` if available — cleaner extraction) to get content
+3. For the top 2-3 results per angle, use Defuddle clean extraction when available (the `defuddle` companion skill first, otherwise `defuddle <url>` if the CLI exists). Skip Defuddle for `.md` URLs. Fall back to `WebFetch` when Defuddle is unavailable or unsuitable.
 4. From each fetched page, extract:
    - **Key claims** — what the source explicitly states
    - **Concepts** — ideas, terms, frameworks introduced
