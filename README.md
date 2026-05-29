@@ -89,6 +89,7 @@
 - 目标 vault 的 `AGENTS.md` 和 `_meta/*` 永远高于 companion skill 的默认格式建议。
 - companion skill 缺失或工具不可用时，`wiki-*` 应回退到自身流程，不应阻塞普通 wiki 维护。
 - `obsidian-cli` 不用于常规 markdown 写入；只有用户明确要求 live Obsidian 操作时才使用。
+- 本仓库同步脚本默认只安装 `obsidian-wiki` 主控 skills；需要 companion 层时显式使用 `-IncludeCompanionSkills`。
 
 ## Wiki 维护思路
 

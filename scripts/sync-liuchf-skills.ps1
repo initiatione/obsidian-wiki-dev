@@ -21,7 +21,7 @@ param(
         "obsidian-cli",
         "defuddle"
     ),
-    [switch]$SkipCompanionSkills
+    [switch]$IncludeCompanionSkills
 )
 
 Set-StrictMode -Version Latest
@@ -105,7 +105,7 @@ foreach ($skill in ($SkillNames | Sort-Object -Unique)) {
     }
 }
 
-if (-not $SkipCompanionSkills) {
+if ($IncludeCompanionSkills) {
     if ([string]::IsNullOrWhiteSpace($CompanionRoot)) {
         $CompanionRoot = Join-Path (Split-Path -Parent $repoRootPath) "obsidian-skills\skills"
     }
@@ -130,9 +130,15 @@ $mode = if ($Apply) { "APPLY" } else { "DRY-RUN" }
 Write-Host "Mode: $mode"
 Write-Host "Repo: $repoRootPath"
 Write-Host "Wiki skills: $($SkillNames -join ', ')"
-if (-not $SkipCompanionSkills -and (Test-Path -LiteralPath (Get-NormalizedPath $CompanionRoot) -PathType Container)) {
-    Write-Host "Companion root: $(Get-NormalizedPath $CompanionRoot)"
-    Write-Host "Companion skills: $($CompanionSkillNames -join ', ')"
+if ($IncludeCompanionSkills) {
+    $companionRootForDisplay = Get-NormalizedPath $CompanionRoot
+    if (Test-Path -LiteralPath $companionRootForDisplay -PathType Container) {
+        Write-Host "Companion root: $companionRootForDisplay"
+        Write-Host "Companion skills: $($CompanionSkillNames -join ', ')"
+    }
+}
+else {
+    Write-Host "Companion skills: disabled (use -IncludeCompanionSkills to sync kepano/obsidian-skills)"
 }
 
 foreach ($targetRootRaw in $TargetRoots) {

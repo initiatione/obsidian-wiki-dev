@@ -21,7 +21,7 @@ git remote -v
 
 ## 本机安装
 
-本机用 Windows junction 把选定 skill 指向当前分支的 `.skills/`，并可额外指向 kepano companion 仓库的 `skills/`。
+本机用 Windows junction 把选定 skill 指向当前分支的 `.skills/`。默认只同步 `obsidian-wiki` 主控 skills；需要 Obsidian companion 层时，显式加 `-IncludeCompanionSkills` 指向 kepano 仓库的 `skills/`。
 
 目标目录：
 
@@ -47,6 +47,12 @@ powershell -ExecutionPolicy Bypass -File .\scripts\sync-liuchf-skills.ps1
 powershell -ExecutionPolicy Bypass -File .\scripts\sync-liuchf-skills.ps1 -Apply
 ```
 
+显式安装或刷新 companion skills：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\sync-liuchf-skills.ps1 -Apply -IncludeCompanionSkills
+```
+
 脚本只处理目标 skill 名单，不会删除 Codex/Claude 目录里已有的非目标 skill。替换已有普通目录或文件前，会先移动到对应的 `skills-backup\<timestamp>\`。
 
 ## 同步名单
@@ -58,7 +64,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\sync-liuchf-skills.ps1 -Apply
 - `copilot-history-ingest`
 - `pi-history-ingest`
 
-默认额外同步 kepano companion skills：
+使用 `-IncludeCompanionSkills` 时额外同步 kepano companion skills：
 
 - `obsidian-markdown`
 - `obsidian-bases`
@@ -72,10 +78,10 @@ powershell -ExecutionPolicy Bypass -File .\scripts\sync-liuchf-skills.ps1 -Apply
 powershell -ExecutionPolicy Bypass -File .\scripts\sync-liuchf-skills.ps1 -Apply -SkillNames wiki-query,wiki-update
 ```
 
-如需只同步 wiki skills、不同步 companion skills：
+如需临时同步指定 wiki skill，同时刷新 companion 层：
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\sync-liuchf-skills.ps1 -Apply -SkipCompanionSkills
+powershell -ExecutionPolicy Bypass -File .\scripts\sync-liuchf-skills.ps1 -Apply -SkillNames wiki-query,wiki-update -IncludeCompanionSkills
 ```
 
 ## 更新上游
@@ -193,9 +199,14 @@ git -C D:\Obsidian-wiki status --short
 C:\Users\liuchf\.codex\skills-backup\20260529-063808\
 ```
 
-Codex 和 Claude 当前均通过 junction 指向：
+Codex 和 Claude 当前的 wiki skills 均通过 junction 指向：
 
 ```text
 C:\Users\liuchf\tools\obsidian-wiki\.skills\
+```
+
+已显式安装过的 companion skills 通过 junction 指向：
+
+```text
 C:\Users\liuchf\tools\obsidian-skills\skills\
 ```
