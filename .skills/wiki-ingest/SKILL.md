@@ -38,6 +38,20 @@ If `QMD_PAPERS_COLLECTION` or `QMD_WIKI_COLLECTION` is set, resolve the QMD inte
 
 If `obsidian-markdown` is installed, use it as a syntax reference when writing Obsidian-sensitive markdown: properties/frontmatter, wikilinks, embeds, callouts, tags, and note-safe formatting. It does not decide page routing, schema fields, tag taxonomy, provenance, staging, or merge behavior; those remain controlled by this skill and the target vault contract.
 
+## Obsidian Math Rendering
+
+When writing or updating final Obsidian wiki pages, render mathematical expressions with Obsidian-compatible LaTeX delimiters:
+
+- Inline formulas use `$...$`, for example `$Q^\pi(s,a)$`.
+- Display formulas use standalone block delimiters:
+  ```text
+  $$
+  R_k = \sum_{i=k}^{T} \gamma^{i-k} r(s_i,a_i)
+  $$
+  ```
+- Do not use fenced code blocks labelled `math`, `tex`, or `latex` for formulas in final wiki pages. Obsidian displays those as code blocks, not rendered equations.
+- Only use fenced code blocks for source code or when the page is explicitly teaching raw LaTeX syntax.
+
 ## Language Policy for Writes
 
 When writing or updating wiki pages:
