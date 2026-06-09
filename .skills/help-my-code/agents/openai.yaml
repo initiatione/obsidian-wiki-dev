@@ -1,0 +1,4 @@
+interface:
+  display_name: "Help My Code"
+  short_description: "低基础机器人工程代码导读与wiki沉淀"
+  default_prompt: "Use $help-my-code to walk me through the current code module."

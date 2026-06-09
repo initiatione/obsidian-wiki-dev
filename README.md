@@ -43,6 +43,7 @@
 
 会话与研究捕获层：
 
+- `help-my-code`：面向低基础学习者的真实机器人工程代码导读，支持可点击代码定位链接，并在模块主流程读完后沉淀学习总结到 wiki。
 - `wiki-capture`：把当前对话保存成结构化 wiki note。
 - `wiki-quick-chat-capture`：快速把会话中的 bug、经验、待办捕获到 `_raw/`。
 - `wiki-research`：多轮 web research 后把结论写入 wiki。

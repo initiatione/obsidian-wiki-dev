@@ -59,6 +59,8 @@ powershell -ExecutionPolicy Bypass -File .\scripts\sync-liuchf-skills.ps1 -Apply
 
 默认同步 `.skills/` 下所有带 `SKILL.md` 的通用 wiki skills，并排除其他 agent 专属历史 skills：
 
+新增的通用技能（例如 `help-my-code`）只要位于 `.skills/<name>/SKILL.md`，就会被默认同步到 Codex/Claude；不需要修改同步脚本。
+
 - `hermes-history-ingest`
 - `openclaw-history-ingest`
 - `copilot-history-ingest`
